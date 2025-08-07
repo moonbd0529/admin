@@ -8,10 +8,10 @@ const config = {
   
   // Development Environment
   development: {
-    API_BASE_URL: 'http://localhost:5001',
-    SOCKET_URL: 'http://localhost:5001',
-    MEDIA_BASE_URL: 'http://localhost:5001/media',
-    FRONTEND_URL: 'http://localhost:3000'
+    API_BASE_URL: 'https://apiserverjoin-production.up.railway.app',
+    SOCKET_URL: 'https://apiserverjoin-production.up.railway.app',
+    MEDIA_BASE_URL: 'https://apiserverjoin-production.up.railway.app/media',
+    FRONTEND_URL: 'https://admin-o7ei.onrender.com'
   },
   
   // Production Environment
@@ -64,3 +64,4 @@ export const getCurrentEnvironment = () => {
 // ========================================
 
 export default getCurrentEnvironment(); 
+
