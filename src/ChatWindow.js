@@ -10,7 +10,7 @@ import PauseIcon from '@mui/icons-material/Pause';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import Avatar from '@mui/material/Avatar';
 import Paper from '@mui/material/Paper';
-import config, { getFileExtension, isGif } from './config';
+import config, { getFileExtension, isGif, getMediaUrl } from './config';
 
 export default function ChatWindow({ user, open, minimized, onClose, onMinimize, messages, onSend, chatInput, setChatInput }) {
   const messagesEndRef = useRef(null);
@@ -181,13 +181,6 @@ export default function ChatWindow({ user, open, minimized, onClose, onMinimize,
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const getMediaUrl = (url) => {
-    if (url.startsWith('http')) {
-      return url;
-    }
-    return config.getMediaUrl(url);
   };
 
   if (minimized) {
@@ -476,15 +469,6 @@ export default function ChatWindow({ user, open, minimized, onClose, onMinimize,
                           const isVideoPlaying = videoPlaying[messageId];
                           
                           console.log('Rendering video with URL:', fullUrl);
-                          
-                          // Test if the URL is accessible
-                          fetch(fullUrl, { method: 'HEAD' })
-                            .then(response => {
-                              console.log('Video URL accessibility test:', fullUrl, 'Status:', response.status);
-                            })
-                            .catch(error => {
-                              console.error('Video URL not accessible:', fullUrl, error);
-                            });
                           
                           return (
                             <Box sx={{ 
