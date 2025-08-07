@@ -10,7 +10,7 @@ import PauseIcon from '@mui/icons-material/Pause';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import Avatar from '@mui/material/Avatar';
 import Paper from '@mui/material/Paper';
-import config, { getFileExtension, isGif, getMediaUrl } from './config';
+import config from './config';
 
 export default function ChatWindow({ user, open, minimized, onClose, onMinimize, messages, onSend, chatInput, setChatInput }) {
   const messagesEndRef = useRef(null);
@@ -181,6 +181,13 @@ export default function ChatWindow({ user, open, minimized, onClose, onMinimize,
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getMediaUrl = (url) => {
+    if (url.startsWith('http')) {
+      return url;
+    }
+    return config.getMediaUrl(url);
   };
 
   if (minimized) {
@@ -363,15 +370,8 @@ export default function ChatWindow({ user, open, minimized, onClose, onMinimize,
                         
                         if (isValidUrl) {
                           const fullUrl = getMediaUrl(url);
-                          // Add error handling for getFileExtension
-                          let fileExtension = '';
-                          try {
-                            fileExtension = getFileExtension ? getFileExtension(fullUrl) : '';
-                          } catch (error) {
-                            console.warn('getFileExtension not available:', error);
-                            fileExtension = '';
-                          }
-                          const isGifFile = msg.message.startsWith('[gif]') || (isGif ? isGif(fullUrl) : false) || fileExtension === 'gif';
+                          const fileExtension = config.getFileExtension(fullUrl);
+                          const isGif = msg.message.startsWith('[gif]') || config.isGif(fullUrl) || fileExtension === 'gif';
                           
                           return (
                             <Box sx={{ 
@@ -389,26 +389,26 @@ export default function ChatWindow({ user, open, minimized, onClose, onMinimize,
                             }}>
                               <img 
                                 src={fullUrl} 
-                                alt={isGifFile ? "Animated GIF" : "Image"} 
+                                alt={isGif ? "Animated GIF" : "Image"} 
                                 style={{ 
                                   width: '100%',
                                   height: 'auto',
                                   maxHeight: 200,
                                   objectFit: 'cover',
                                   borderRadius: 8,
-                                  ...(isGifFile && {
+                                  ...(isGif && {
                                     imageRendering: 'auto',
                                     willChange: 'auto'
                                   })
                                 }}
-                                onClick={() => handleImageClick(fullUrl, isGifFile ? 'Animated GIF' : 'Image')}
+                                onClick={() => handleImageClick(fullUrl, isGif ? 'Animated GIF' : 'Image')}
                                 onError={(e) => {
                                   e.target.style.display = 'none';
                                   e.target.nextSibling.style.display = 'flex';
                                 }}
-                                key={isGifFile ? `${fullUrl}-${Date.now()}` : fullUrl}
+                                key={isGif ? `${fullUrl}-${Date.now()}` : fullUrl}
                               />
-                              {isGifFile && (
+                              {isGif && (
                                 <Box sx={{
                                   position: 'absolute',
                                   top: 8,
@@ -469,6 +469,15 @@ export default function ChatWindow({ user, open, minimized, onClose, onMinimize,
                           const isVideoPlaying = videoPlaying[messageId];
                           
                           console.log('Rendering video with URL:', fullUrl);
+                          
+                          // Test if the URL is accessible
+                          fetch(fullUrl, { method: 'HEAD' })
+                            .then(response => {
+                              console.log('Video URL accessibility test:', fullUrl, 'Status:', response.status);
+                            })
+                            .catch(error => {
+                              console.error('Video URL not accessible:', fullUrl, error);
+                            });
                           
                           return (
                             <Box sx={{ 
