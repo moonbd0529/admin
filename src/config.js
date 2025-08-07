@@ -98,5 +98,22 @@ export const isGif = (url) => {
   const extension = getFileExtension(url);
   return extension === 'gif' || url.toLowerCase().includes('gif');
 };
-
+// Media URL helper function
+export const getMediaUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http')) {
+    // If it's a Telegram API URL, use a CORS proxy to avoid CORS issues
+    if (url.includes('api.telegram.org')) {
+      // Use a CORS proxy to avoid CORS issues
+      return `https://shinkansen.proxy.rlwy.net:21767/${url}`;
+    }
+    return url;
+  }
+  // If it's a relative path, construct the full URL
+  if (url.startsWith('/')) {
+    return `${getCurrentEnvironment().API_BASE_URL}${url}`;
+  }
+  return url;
+};
 export default getCurrentEnvironment(); 
+
