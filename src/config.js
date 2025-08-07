@@ -8,6 +8,14 @@ const config = {
   
   // Development Environment
   development: {
+    API_BASE_URL: 'http://localhost:5001',
+    SOCKET_URL: 'http://localhost:5001',
+    MEDIA_BASE_URL: 'http://localhost:5001/media',
+    FRONTEND_URL: 'http://localhost:3000'
+  },
+  
+  // Local Development (for testing when Railway is down)
+  local: {
     API_BASE_URL: 'https://apiserverjoin-production.up.railway.app',
     SOCKET_URL: 'https://apiserverjoin-production.up.railway.app',
     MEDIA_BASE_URL: 'https://apiserverjoin-production.up.railway.app/media',
@@ -24,10 +32,18 @@ const config = {
   
   // Staging Environment
   staging: {
-    API_BASE_URL: 'https://staging-your-domain.com',
-    SOCKET_URL: 'https://staging-your-domain.com',
-    MEDIA_BASE_URL: 'https://staging-your-domain.com/media',
-    FRONTEND_URL: 'https://staging-your-domain.com'
+    API_BASE_URL: 'https://apiserverjoin-production.up.railway.app',
+    SOCKET_URL: 'https://apiserverjoin-production.up.railway.app',
+    MEDIA_BASE_URL: 'https://apiserverjoin-production.up.railway.app/media',
+    FRONTEND_URL: 'https://admin-o7ei.onrender.com'
+  },
+  
+  // Render Environment (for Render deployment)
+  render: {
+    API_BASE_URL: 'https://apiserverjoin-production.up.railway.app',
+    SOCKET_URL: 'https://apiserverjoin-production.up.railway.app',
+    MEDIA_BASE_URL: 'https://apiserverjoin-production.up.railway.app/media',
+    FRONTEND_URL: 'https://admin-o7ei.onrender.com'
   }
 };
 
@@ -55,13 +71,32 @@ export const setStaging = () => {
 
 // Get current environment
 export const getCurrentEnvironment = () => {
-  const env = process.env.NODE_ENV || 'development';
-  return config[env] || config.development;
+  const env = process.env.NODE_ENV || 'production'; // Changed to production by default
+  return config[env] || config.production; // Changed to production as fallback
 };
 
 // ========================================
 // 📊 CURRENT CONFIG
 // ========================================
 
-export default getCurrentEnvironment(); 
+// Utility functions for file handling
+export const getFileExtension = (url) => {
+  if (!url) return '';
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    const extension = pathname.split('.').pop().toLowerCase();
+    return extension;
+  } catch (e) {
+    // If URL parsing fails, try to extract extension from the string
+    const match = url.match(/\.([a-zA-Z0-9]+)(?:[?#]|$)/);
+    return match ? match[1].toLowerCase() : '';
+  }
+};
 
+export const isGif = (url) => {
+  const extension = getFileExtension(url);
+  return extension === 'gif' || url.toLowerCase().includes('gif');
+};
+
+export default getCurrentEnvironment(); 
