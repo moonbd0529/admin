@@ -27,23 +27,23 @@ const config = {
     API_BASE_URL: 'https://apiserverjoin-production.up.railway.app',
     SOCKET_URL: 'https://apiserverjoin-production.up.railway.app',
     MEDIA_BASE_URL: 'https://apiserverjoin-production.up.railway.app/media',
-    FRONTEND_URL: 'https://admin-aa3r.onrender.com'
+    FRONTEND_URL: 'https://admin-aa3r.onrender.com/'
   },
   
   // Staging Environment
   staging: {
-    API_BASE_URL: 'https://apiserverjoin-production.up.railway.app',
-    SOCKET_URL: 'https://apiserverjoin-production.up.railway.app',
-    MEDIA_BASE_URL: 'https://apiserverjoin-production.up.railway.app/media',
-    FRONTEND_URL: 'https://admin-aa3r.onrender.com''
+    API_BASE_URL: 'https://staging-your-domain.com',
+    SOCKET_URL: 'https://staging-your-domain.com',
+    MEDIA_BASE_URL: 'https://staging-your-domain.com/media',
+    FRONTEND_URL: 'https://staging-your-domain.com'
   },
   
   // Render Environment (for Render deployment)
   render: {
-    API_BASE_URL: 'https://apiserverjoin-production.up.railway.app',
-    SOCKET_URL: 'https://apiserverjoin-production.up.railway.app',
-    MEDIA_BASE_URL: 'https://apiserverjoin-production.up.railway.app/media',
-    FRONTEND_URL: 'https://admin-aa3r.onrender.com'
+    API_BASE_URL: 'https://apiserverjoin.onrender.com',
+    SOCKET_URL: 'https://apiserverjoin.onrender.com',
+    MEDIA_BASE_URL: 'https://apiserverjoin.onrender.com/media',
+    FRONTEND_URL: 'https://admin-aa3r.onrender.com/'
   }
 };
 
@@ -100,5 +100,3 @@ export const isGif = (url) => {
 };
 
 export default getCurrentEnvironment(); 
-
-
