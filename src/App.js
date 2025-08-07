@@ -22,6 +22,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import apiConfig from './apiConfig.js';
 
 const drawerWidth = 240;
 
@@ -85,20 +86,20 @@ function App() {
   }), [mode]);
 
   useEffect(() => {
-    fetch(`http://localhost:5001/dashboard-users?page=${page}&page_size=${pageSize}`, { credentials: 'include' })
+    fetch(apiConfig.getDashboardUsers(page, pageSize), { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         setUsers(Array.isArray(data.users) ? data.users : []);
         setTotal(data.total || 0);
       });
-    fetch('http://localhost:5001/dashboard-stats', { credentials: 'include' })
+    fetch(apiConfig.getDashboardStats(), { credentials: 'include' })
       .then(res => res.json())
       .then(data => setStats(data));
   }, [page, pageSize]);
 
   // Socket.IO for real-time
   useEffect(() => {
-    const socket = io('http://localhost:5001');
+    const socket = io(apiConfig.getSocketUrl());
     
     socket.on('new_message', (data) => {
       // Find user
@@ -116,7 +117,7 @@ function App() {
         
         if (existingChat) {
           // Fetch latest messages for this user to get real-time updates
-          fetch(`http://localhost:5001/chat/${user.user_id}/messages`, { credentials: 'include' })
+          fetch(apiConfig.getChatMessages(user.user_id), { credentials: 'include' })
             .then(res => res.json())
             .then(data => {
               let msgs = [];
@@ -145,7 +146,7 @@ function App() {
           return prev;
         } else {
           // If chat is not open, open it and fetch messages
-          fetch(`http://localhost:5001/chat/${user.user_id}/messages`, { credentials: 'include' })
+          fetch(apiConfig.getChatMessages(user.user_id), { credentials: 'include' })
             .then(res => res.json())
             .then(data => {
               let msgs = [];
@@ -182,7 +183,7 @@ function App() {
         const existingChat = prev.find(c => c.user.user_id === data.user_id);
         if (existingChat) {
           // Fetch updated messages
-          fetch(`http://localhost:5001/chat/${data.user_id}/messages`, { credentials: 'include' })
+          fetch(apiConfig.getChatMessages(data.user_id), { credentials: 'include' })
             .then(res => res.json())
             .then(data => {
               let msgs = [];
@@ -224,7 +225,7 @@ function App() {
     // Add a new chat window for this user (will be empty initially)
     setOpenChats(prev => [...prev, { user, minimized: false, messages: [], chatInput: '' }]);
     // Always fetch latest messages when opening chat
-    fetch(`http://localhost:5001/chat/${user.user_id}/messages`, { credentials: 'include' })
+    fetch(apiConfig.getChatMessages(user.user_id), { credentials: 'include' })
       .then(res => res.json ? res.json() : res.text())
       .then(data => {
         let msgs = [];
@@ -241,7 +242,7 @@ function App() {
   useEffect(() => {
     openChats.forEach((chat, idx) => {
       if (chat.messages.length === 0) {
-        fetch(`http://localhost:5001/chat/${chat.user.user_id}/messages`, { credentials: 'include' })
+        fetch(apiConfig.getChatMessages(chat.user.user_id), { credentials: 'include' })
           .then(res => res.json ? res.json() : res.text())
           .then(data => {
             // Assume data is array of [sender, message, timestamp]
@@ -279,7 +280,7 @@ function App() {
     setOpenChats(prev => prev.map(c => c.user.user_id === user_id ? { ...c, messages: [...c.messages, ...newMessages], chatInput: '' } : c));
     
     try {
-      const response = await fetch(`http://localhost:5001/chat/${user_id}`, {
+      const response = await fetch(apiConfig.sendChatMessage(user_id), {
         method: 'POST',
         body: formData
       });
@@ -309,7 +310,7 @@ function App() {
     setInviteError('');
     setInviteLink('');
     try {
-      const res = await fetch('http://localhost:5001/get_channel_invite_link');
+      const res = await fetch(apiConfig.getChannelInviteLink());
       const data = await res.json();
       if (data.invite_link) {
         setInviteLink(data.invite_link);
@@ -324,7 +325,7 @@ function App() {
 
   // Broadcast
   const handleBroadcastSend = () => {
-    fetch('http://localhost:5001/send_all', {
+    fetch(apiConfig.sendBroadcast(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `message=${encodeURIComponent(broadcastMsg)}`
@@ -335,7 +336,7 @@ function App() {
 
   // Direct Message
   const handleDirectMsgSend = () => {
-    fetch('http://localhost:5001/send_one', {
+    fetch(apiConfig.sendDirectMessage(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `user_id=${directMsgUser.user_id}&message=${encodeURIComponent(directMsg)}`
@@ -349,7 +350,7 @@ function App() {
     setChatUser(user);
     setChatOpen(true);
     setChatLoading(true);
-    fetch(`http://localhost:5001/chat/${user.user_id}/messages`, { credentials: 'include' })
+    fetch(apiConfig.getChatMessages(user.user_id), { credentials: 'include' })
       .then(res => res.text())
       .then(html => {
         // Parse HTML to plain text for now (or you can render as HTML)
@@ -359,7 +360,7 @@ function App() {
   };
   const handleChatSend = () => {
     setChatSending(true);
-    fetch(`http://localhost:5001/chat/${chatUser.user_id}`, {
+    fetch(apiConfig.sendChatMessage(chatUser.user_id), {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `message=${encodeURIComponent(chatInput)}`
@@ -367,7 +368,7 @@ function App() {
       .then(() => {
         setChatInput('');
         // Refresh chat messages
-        fetch(`http://localhost:5001/chat/${chatUser.user_id}/messages`, { credentials: 'include' })
+        fetch(apiConfig.getChatMessages(chatUser.user_id), { credentials: 'include' })
           .then(res => res.text())
           .then(html => {
             setChatMessages([{ sender: 'system', message: html }]);
@@ -384,7 +385,7 @@ function App() {
     { value: 'VIP', label: 'VIP' },
   ];
   const handleLabelChange = async (user_id, newLabel) => {
-    await fetch(`http://localhost:5001/user/${user_id}/label`, {
+    await fetch(apiConfig.updateUserLabel(user_id), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ label: newLabel })
