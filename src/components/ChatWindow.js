@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { socket } from '../socket';
 import { FaPaperPlane } from 'react-icons/fa';
+import apiConfig from '../apiConfig.js';
 
 export default function ChatWindow({ user, onClose }) {
   const [messages, setMessages] = useState([]);
@@ -10,12 +11,12 @@ export default function ChatWindow({ user, onClose }) {
 
   useEffect(() => {
     socket.emit('join', { room: 'chat_' + user.user_id });
-    fetch(`http://localhost:5001/chat/${user.user_id}/messages`)
+    fetch(apiConfig.getChatMessages(user.user_id))
       .then(res => res.text())
       .then(html => setMessages([{ html }]));
     const handler = (data) => {
       if (data.user_id === user.user_id) {
-        fetch(`http://localhost:5001/chat/${user.user_id}/messages`)
+        fetch(apiConfig.getChatMessages(user.user_id))
           .then(res => res.text())
           .then(html => setMessages([{ html }]));
       }
@@ -38,7 +39,7 @@ export default function ChatWindow({ user, onClose }) {
     const formData = new window.FormData();
     if (input.trim()) formData.append('message', input);
     if (file) formData.append('file', file);
-    fetch(`http://localhost:5001/chat/${user.user_id}`, {
+    fetch(apiConfig.sendChatMessage(user.user_id), {
       method: 'POST',
       body: formData
     }).then(() => {
