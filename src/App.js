@@ -99,7 +99,24 @@ function App() {
 
   // Socket.IO for real-time
   useEffect(() => {
-    const socket = io(apiConfig.getSocketUrl());
+    const socket = io(apiConfig.getSocketUrl(), {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
+    });
+    
+    socket.on('connect', () => {
+      console.log('Socket.IO connected');
+    });
+    
+    socket.on('disconnect', () => {
+      console.log('Socket.IO disconnected');
+    });
+    
+    socket.on('connect_error', (error) => {
+      console.error('Socket.IO connection error:', error);
+    });
     
     socket.on('new_message', (data) => {
       // Find user
@@ -215,27 +232,74 @@ function App() {
       });
     });
     
-    return () => socket.disconnect();
-  }, [users]);
+    return () => {
+      console.log('Disconnecting Socket.IO');
+      socket.disconnect();
+    };
+  }, []); // Remove users dependency to prevent reconnections
+
+  // Periodic refresh for real-time updates (fallback)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Refresh open chats every 10 seconds
+      setOpenChats(prev => {
+        const updatedChats = [...prev];
+        updatedChats.forEach((chat, index) => {
+          fetch(apiConfig.getChatMessages(chat.user.user_id), { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+              let msgs = [];
+              if (Array.isArray(data)) {
+                msgs = data.map(([sender, message, timestamp]) => ({ sender, message, timestamp }));
+              } else if (typeof data === 'string') {
+                msgs = [{ sender: 'system', message: data }];
+              }
+              
+              setOpenChats(prev2 => prev2.map((c2, i) => 
+                i === index ? { ...c2, messages: msgs } : c2
+              ));
+            })
+            .catch(err => {
+              console.error('Error refreshing chat messages:', err);
+            });
+        });
+        return updatedChats;
+      });
+    }, 10000); // 10 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Function to open chat manually (from sidebar/table)
   const handleOpenChat = (user) => {
-    // Remove any existing chat window for this user (if present)
-    setOpenChats(prev => prev.filter(c => c.user.user_id !== user.user_id));
-    // Add a new chat window for this user (will be empty initially)
-    setOpenChats(prev => [...prev, { user, minimized: false, messages: [], chatInput: '' }]);
-    // Always fetch latest messages when opening chat
-    fetch(apiConfig.getChatMessages(user.user_id), { credentials: 'include' })
-      .then(res => res.json ? res.json() : res.text())
-      .then(data => {
-        let msgs = [];
-        if (Array.isArray(data)) {
-          msgs = data.map(([sender, message, timestamp]) => ({ sender, message, timestamp }));
-        } else if (typeof data === 'string') {
-          msgs = [{ sender: 'system', message: data }];
-        }
-        setOpenChats(prev => prev.map(c => c.user.user_id === user.user_id ? { ...c, messages: msgs } : c));
-      });
+    try {
+      // Remove any existing chat window for this user (if present)
+      setOpenChats(prev => prev.filter(c => c.user.user_id !== user.user_id));
+      // Add a new chat window for this user (will be empty initially)
+      setOpenChats(prev => [...prev, { user, minimized: false, messages: [], chatInput: '' }]);
+      // Always fetch latest messages when opening chat
+      fetch(apiConfig.getChatMessages(user.user_id), { credentials: 'include' })
+        .then(res => res.json ? res.json() : res.text())
+        .then(data => {
+          let msgs = [];
+          if (Array.isArray(data)) {
+            msgs = data.map(([sender, message, timestamp]) => ({ sender, message, timestamp }));
+          } else if (typeof data === 'string') {
+            msgs = [{ sender: 'system', message: data }];
+          }
+          setOpenChats(prev => prev.map(c => c.user.user_id === user.user_id ? { ...c, messages: msgs } : c));
+        })
+        .catch(error => {
+          console.error('Error fetching chat messages:', error);
+          // Set empty messages on error to prevent crash
+          setOpenChats(prev => prev.map(c => c.user.user_id === user.user_id ? { ...c, messages: [] } : c));
+        });
+    } catch (error) {
+      console.error('Error opening chat:', error);
+      // Fallback: just open chat with empty messages
+      setOpenChats(prev => prev.filter(c => c.user.user_id !== user.user_id));
+      setOpenChats(prev => [...prev, { user, minimized: false, messages: [], chatInput: '' }]);
+    }
   };
 
   // Fetch messages when chat window opens
@@ -253,6 +317,11 @@ function App() {
               msgs = [{ sender: 'system', message: data }];
             }
             setOpenChats(prev => prev.map((c, i) => i === idx ? { ...c, messages: msgs } : c));
+          })
+          .catch(error => {
+            console.error('Error fetching messages for chat:', error);
+            // Set empty messages on error to prevent crash
+            setOpenChats(prev => prev.map((c, i) => i === idx ? { ...c, messages: [] } : c));
           });
       }
     });
@@ -789,8 +858,8 @@ function App() {
               minimized={chat.minimized}
               onClose={() => handleCloseChat(chat.user.user_id)}
               onMinimize={() => handleMinimizeChat(chat.user.user_id)}
-              messages={chat.messages}
-              chatInput={chat.chatInput}
+              messages={chat.messages || []}
+              chatInput={chat.chatInput || ''}
               setChatInput={val => setOpenChats(prev => prev.map(c => c.user.user_id === chat.user.user_id ? { ...c, chatInput: val } : c))}
               onSend={(text, files, cb) => handleSendChat(chat.user.user_id, files, cb)}
             />
