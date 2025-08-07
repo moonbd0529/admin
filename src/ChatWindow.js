@@ -10,7 +10,7 @@ import PauseIcon from '@mui/icons-material/Pause';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import Avatar from '@mui/material/Avatar';
 import Paper from '@mui/material/Paper';
-import config from './config';
+import config, { getFileExtension, isGif } from './config';
 
 export default function ChatWindow({ user, open, minimized, onClose, onMinimize, messages, onSend, chatInput, setChatInput }) {
   const messagesEndRef = useRef(null);
@@ -370,8 +370,15 @@ export default function ChatWindow({ user, open, minimized, onClose, onMinimize,
                         
                         if (isValidUrl) {
                           const fullUrl = getMediaUrl(url);
-                          const fileExtension = config.getFileExtension(fullUrl);
-                          const isGif = msg.message.startsWith('[gif]') || config.isGif(fullUrl) || fileExtension === 'gif';
+                          // Add error handling for getFileExtension
+                          let fileExtension = '';
+                          try {
+                            fileExtension = getFileExtension ? getFileExtension(fullUrl) : '';
+                          } catch (error) {
+                            console.warn('getFileExtension not available:', error);
+                            fileExtension = '';
+                          }
+                          const isGifFile = msg.message.startsWith('[gif]') || (isGif ? isGif(fullUrl) : false) || fileExtension === 'gif';
                           
                           return (
                             <Box sx={{ 
@@ -389,26 +396,26 @@ export default function ChatWindow({ user, open, minimized, onClose, onMinimize,
                             }}>
                               <img 
                                 src={fullUrl} 
-                                alt={isGif ? "Animated GIF" : "Image"} 
+                                alt={isGifFile ? "Animated GIF" : "Image"} 
                                 style={{ 
                                   width: '100%',
                                   height: 'auto',
                                   maxHeight: 200,
                                   objectFit: 'cover',
                                   borderRadius: 8,
-                                  ...(isGif && {
+                                  ...(isGifFile && {
                                     imageRendering: 'auto',
                                     willChange: 'auto'
                                   })
                                 }}
-                                onClick={() => handleImageClick(fullUrl, isGif ? 'Animated GIF' : 'Image')}
+                                onClick={() => handleImageClick(fullUrl, isGifFile ? 'Animated GIF' : 'Image')}
                                 onError={(e) => {
                                   e.target.style.display = 'none';
                                   e.target.nextSibling.style.display = 'flex';
                                 }}
-                                key={isGif ? `${fullUrl}-${Date.now()}` : fullUrl}
+                                key={isGifFile ? `${fullUrl}-${Date.now()}` : fullUrl}
                               />
-                              {isGif && (
+                              {isGifFile && (
                                 <Box sx={{
                                   position: 'absolute',
                                   top: 8,
