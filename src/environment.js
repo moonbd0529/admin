@@ -1,29 +1,16 @@
 // 🌍 Environment-based Configuration System
 // Development, Staging, এবং Production এর জন্য আলাদা URL
 
+import config from './config.js';
+
 // ========================================
 // 🔧 ENVIRONMENT DETECTION
 // ========================================
-const environments = {
-  development: {
-    API_BASE_URL: 'https://apiserverjoin-production.up.railway.app',
-    SOCKET_URL: 'https://apiserverjoin-production.up.railway.app',
-    MEDIA_BASE_URL: 'https://apiserverjoin-production.up.railway.app/media',
-    FRONTEND_URL: 'https://admin-o7ei.onrender.com/'
-  },
-  production: {
-    API_BASE_URL: 'https://apiserverjoin-production.up.railway.app',
-    SOCKET_URL: 'https://apiserverjoin-production.up.railway.app',
-    MEDIA_BASE_URL: 'https://apiserverjoin-production.up.railway.app/media',
-    FRONTEND_URL: 'https://admin-o7ei.onrender.com'
-  }
-};
-
 const currentEnv = process.env.NODE_ENV || 'development';
 
 // Create the environment configuration object with helper functions
 const environmentConfig = {
-  ...environments[currentEnv],
+  ...config,
   ENVIRONMENT: currentEnv,
   
   // Environment detection functions
