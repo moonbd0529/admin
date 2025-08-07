@@ -185,9 +185,18 @@ export default function ChatWindow({ user, open, minimized, onClose, onMinimize,
 
   const getMediaUrl = (url) => {
     if (url.startsWith('http')) {
+      // If it's a Telegram API URL, use a CORS proxy
+      if (url.includes('api.telegram.org')) {
+        // Use a CORS proxy to avoid CORS issues
+        return `https://cors-anywhere.herokuapp.com/${url}`;
+      }
       return url;
     }
-    return config.getMediaUrl(url);
+    // If it's a relative path, construct the full URL
+    if (url.startsWith('/')) {
+      return `${config.API_BASE_URL}${url}`;
+    }
+    return url;
   };
 
   if (minimized) {
@@ -476,15 +485,6 @@ export default function ChatWindow({ user, open, minimized, onClose, onMinimize,
                           const isVideoPlaying = videoPlaying[messageId];
                           
                           console.log('Rendering video with URL:', fullUrl);
-                          
-                          // Test if the URL is accessible
-                          fetch(fullUrl, { method: 'HEAD' })
-                            .then(response => {
-                              console.log('Video URL accessibility test:', fullUrl, 'Status:', response.status);
-                            })
-                            .catch(error => {
-                              console.error('Video URL not accessible:', fullUrl, error);
-                            });
                           
                           return (
                             <Box sx={{ 
