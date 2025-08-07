@@ -28,14 +28,24 @@ const URL_CONFIG = {
   
   // Domain extraction
   getDomain: () => {
-    const url = new URL(BASE_URL);
-    return url.hostname;
+    try {
+      const url = new URL(BASE_URL);
+      return url.hostname;
+    } catch (error) {
+      console.error('Error getting domain:', error);
+      return 'localhost';
+    }
   },
   
   // Port extraction
   getPort: () => {
-    const url = new URL(BASE_URL);
-    return url.port || (url.protocol === 'https:' ? '443' : '80');
+    try {
+      const url = new URL(BASE_URL);
+      return url.port || (url.protocol === 'https:' ? '443' : '80');
+    } catch (error) {
+      console.error('Error getting port:', error);
+      return '5001';
+    }
   }
 };
 
@@ -183,22 +193,42 @@ const config = {
   
   // Get current environment
   getEnvironment: () => {
-    return environmentConfig.ENVIRONMENT;
+    try {
+      return environmentConfig.ENVIRONMENT;
+    } catch (error) {
+      console.error('Error getting environment:', error);
+      return 'development';
+    }
   },
   
   // Check if running in development
   isDevelopment: () => {
-    return environmentConfig.isDevelopment();
+    try {
+      return environmentConfig.isDevelopment();
+    } catch (error) {
+      console.error('Error checking development mode:', error);
+      return process.env.NODE_ENV === 'development';
+    }
   },
   
   // Check if running in staging
   isStaging: () => {
-    return environmentConfig.isStaging();
+    try {
+      return environmentConfig.isStaging();
+    } catch (error) {
+      console.error('Error checking staging mode:', error);
+      return false;
+    }
   },
   
   // Check if running in production
   isProduction: () => {
-    return environmentConfig.isProduction();
+    try {
+      return environmentConfig.isProduction();
+    } catch (error) {
+      console.error('Error checking production mode:', error);
+      return process.env.NODE_ENV === 'production';
+    }
   },
   
   // Get domain name
@@ -227,17 +257,21 @@ const config = {
   
   // Log current configuration (for debugging)
   logConfig: () => {
-    if (config.isDevelopment()) {
-      console.log('🔧 Current Configuration:', {
-        environment: config.getEnvironment(),
-        baseUrl: URL_CONFIG.API_BASE_URL,
-        domain: config.getDomain(),
-        port: config.getPort(),
-        protocol: config.getProtocol(),
-        socketUrl: config.getSocketUrl(),
-        mediaUrl: URL_CONFIG.MEDIA_BASE_URL,
-        frontendUrl: URL_CONFIG.FRONTEND_URL
-      });
+    try {
+      if (config.isDevelopment()) {
+        console.log('🔧 Current Configuration:', {
+          environment: config.getEnvironment(),
+          baseUrl: URL_CONFIG.API_BASE_URL,
+          domain: config.getDomain(),
+          port: config.getPort(),
+          protocol: config.getProtocol(),
+          socketUrl: config.getSocketUrl(),
+          mediaUrl: URL_CONFIG.MEDIA_BASE_URL,
+          frontendUrl: URL_CONFIG.FRONTEND_URL
+        });
+      }
+    } catch (error) {
+      console.error('Error logging config:', error);
     }
   }
 };
@@ -246,8 +280,12 @@ const config = {
 // 🚀 AUTO-INITIALIZATION
 // ========================================
 // Log configuration in development mode
-if (config.isDevelopment()) {
-  config.logConfig();
+try {
+  if (config.isDevelopment()) {
+    config.logConfig();
+  }
+} catch (error) {
+  console.error('Error during config initialization:', error);
 }
 
 export default config; 
