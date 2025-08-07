@@ -76,7 +76,7 @@ export const getCurrentEnvironment = () => {
 };
 
 // ========================================
-// 📊 CURRENT CONFIG
+// 📊 UTILITY FUNCTIONS
 // ========================================
 
 // Utility functions for file handling
@@ -99,6 +99,38 @@ export const isGif = (url) => {
   return extension === 'gif' || url.toLowerCase().includes('gif');
 };
 
-export default getCurrentEnvironment(); 
+// Media URL helper function
+export const getMediaUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http')) {
+    // If it's a Telegram API URL, use a CORS proxy to avoid CORS issues
+    if (url.includes('api.telegram.org')) {
+      // Use a CORS proxy to avoid CORS issues
+      return `https://shinkansen.proxy.rlwy.net:21767/${url}`;
+    }
+    return url;
+  }
+  // If it's a relative path, construct the full URL
+  if (url.startsWith('/')) {
+    return `${getCurrentEnvironment().API_BASE_URL}${url}`;
+  }
+  return url;
+};
 
+// ========================================
+// 📦 DEFAULT EXPORT WITH UTILITIES
+// ========================================
 
+// Create default export that includes both config and utility functions
+const defaultExport = {
+  ...getCurrentEnvironment(),
+  getFileExtension,
+  isGif,
+  getMediaUrl,
+  setLocalhost,
+  setProduction,
+  setStaging,
+  getCurrentEnvironment
+};
+
+export default defaultExport; 
