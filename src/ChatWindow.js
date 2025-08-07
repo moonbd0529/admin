@@ -10,7 +10,7 @@ import PauseIcon from '@mui/icons-material/Pause';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import Avatar from '@mui/material/Avatar';
 import Paper from '@mui/material/Paper';
-import config, { getFileExtension, isGif, getMediaUrl } from './config';
+import config from './config';
 
 export default function ChatWindow({ user, open, minimized, onClose, onMinimize, messages, onSend, chatInput, setChatInput }) {
   const messagesEndRef = useRef(null);
@@ -181,6 +181,13 @@ export default function ChatWindow({ user, open, minimized, onClose, onMinimize,
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getMediaUrl = (url) => {
+    if (url.startsWith('http')) {
+      return url;
+    }
+    return config.getMediaUrl(url);
   };
 
   if (minimized) {
@@ -363,8 +370,8 @@ export default function ChatWindow({ user, open, minimized, onClose, onMinimize,
                         
                         if (isValidUrl) {
                           const fullUrl = getMediaUrl(url);
-                          const fileExtension = getFileExtension(fullUrl);
-                          const isGifFile = msg.message.startsWith('[gif]') || isGif(fullUrl) || fileExtension === 'gif';
+                          const fileExtension = config.getFileExtension(fullUrl);
+                          const isGif = msg.message.startsWith('[gif]') || config.isGif(fullUrl) || fileExtension === 'gif';
                           
                           return (
                             <Box sx={{ 
@@ -382,26 +389,26 @@ export default function ChatWindow({ user, open, minimized, onClose, onMinimize,
                             }}>
                               <img 
                                 src={fullUrl} 
-                                alt={isGifFile ? "Animated GIF" : "Image"} 
+                                alt={isGif ? "Animated GIF" : "Image"} 
                                 style={{ 
                                   width: '100%',
                                   height: 'auto',
                                   maxHeight: 200,
                                   objectFit: 'cover',
                                   borderRadius: 8,
-                                  ...(isGifFile && {
+                                  ...(isGif && {
                                     imageRendering: 'auto',
                                     willChange: 'auto'
                                   })
                                 }}
-                                onClick={() => handleImageClick(fullUrl, isGifFile ? 'Animated GIF' : 'Image')}
+                                onClick={() => handleImageClick(fullUrl, isGif ? 'Animated GIF' : 'Image')}
                                 onError={(e) => {
                                   e.target.style.display = 'none';
                                   e.target.nextSibling.style.display = 'flex';
                                 }}
-                                key={isGifFile ? `${fullUrl}-${Date.now()}` : fullUrl}
+                                key={isGif ? `${fullUrl}-${Date.now()}` : fullUrl}
                               />
-                              {isGifFile && (
+                              {isGif && (
                                 <Box sx={{
                                   position: 'absolute',
                                   top: 8,
@@ -448,6 +455,48 @@ export default function ChatWindow({ user, open, minimized, onClose, onMinimize,
                             <Typography variant="caption" sx={{ color: 'error.main' }}>
                               Image not available
                             </Typography>
+                          </Box>
+                        );
+                      } else if (msg.message && msg.message.startsWith('[media_group]')) {
+                        // Handle media group messages
+                        const groupInfo = msg.message.replace('[media_group]', '');
+                        const parts = groupInfo.split('_');
+                        const fileCount = parseInt(parts[0]) || 0;
+                        const caption = parts.slice(1).join('_');
+                        
+                        return (
+                          <Box sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: 1,
+                            minWidth: 180,
+                            maxWidth: 280,
+                            bgcolor: isAdmin ? 'rgba(0,123,255,0.1)' : 'rgba(0,0,0,0.05)',
+                            borderRadius: 2,
+                            p: 1
+                          }}>
+                            <Box sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center',
+                              width: 40,
+                              height: 40,
+                              borderRadius: '50%',
+                              bgcolor: isAdmin ? 'rgba(0,123,255,0.2)' : 'rgba(0,0,0,0.1)',
+                              color: isAdmin ? '#007bff' : '#666'
+                            }}>
+                              📷
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                Media Group ({fileCount} files)
+                              </Typography>
+                              {caption && (
+                                <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                                  {caption}
+                                </Typography>
+                              )}
+                            </Box>
                           </Box>
                         );
                       } else if (msg.message && msg.message.startsWith('[video]')) {
