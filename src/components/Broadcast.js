@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
+import apiConfig from '../apiConfig.js';
 
 export default function Broadcast({ onClose }) {
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState('');
   const send = (e) => {
     e.preventDefault();
-    fetch('http://localhost:5001/send_all', {
+    fetch(apiConfig.sendBroadcast(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `message=${encodeURIComponent(message)}`
