@@ -1,42 +1,43 @@
-// 🌍 Environment-based Configuration System
-// Development, Staging, এবং Production এর জন্য আলাদা URL
+// 🌐 Environment-based Configuration System
+// Development, Staging, ও Production এর জন্য আলাদা URL
 
 import config from './config.js';
 
 // ========================================
 // 🔧 ENVIRONMENT DETECTION
 // ========================================
-const currentEnv = process.env.NODE_ENV || 'development';
+const getCurrentEnv = () => {
+  // Check localStorage first (for dynamic switching)
+  const localEnv = localStorage.getItem('NODE_ENV');
+  if (localEnv) {
+    return localEnv;
+  }
+
+  // Fallback to process.env or default
+  return process.env.NODE_ENV || 'development'; // Changed to development by default
+};
+
+const currentEnv = getCurrentEnv();
+
+// Get the correct config for current environment
+const getConfigForEnv = (env) => {
+  return config[env] || config.development; // Default to development
+};
 
 // Create the environment configuration object with helper functions
 const environmentConfig = {
-  ...config,
+  ...getConfigForEnv(currentEnv), // Use the correct config for current environment
   ENVIRONMENT: currentEnv,
+
+  // Helper functions
+  isDevelopment: () => currentEnv === 'development',
+  isProduction: () => currentEnv === 'production',
+  isStaging: () => currentEnv === 'staging',
   
-  // Environment detection functions
-  isDevelopment: () => {
-    try {
-      return currentEnv === 'development';
-    } catch (error) {
-      console.error('Error in isDevelopment:', error);
-      return true; // Default to development
-    }
-  },
-  isStaging: () => {
-    try {
-      return currentEnv === 'staging';
-    } catch (error) {
-      console.error('Error in isStaging:', error);
-      return false;
-    }
-  },
-  isProduction: () => {
-    try {
-      return currentEnv === 'production';
-    } catch (error) {
-      console.error('Error in isProduction:', error);
-      return false;
-    }
+  // Dynamic environment switching
+  setEnvironment: (env) => {
+    localStorage.setItem('NODE_ENV', env);
+    window.location.reload(); // Reload to apply new config
   }
 };
 
