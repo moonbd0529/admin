@@ -98,7 +98,7 @@ function App() {
   // API Health Check Function
   const checkApiHealth = async () => {
     try {
-      const response = await fetch(apiConfig.getDashboardStats(), { 
+    const response = await fetch(apiConfig.getDashboardStats(), { 
         credentials: 'include',
         method: 'GET'
       });
