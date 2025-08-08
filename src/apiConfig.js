@@ -17,6 +17,13 @@ const apiConfig = {
     const url = environmentConfig.API_BASE_URL;
     console.log('🔧 API Base URL:', url); // Debug log
     console.log('🔧 Environment:', environmentConfig.ENVIRONMENT); // Debug log
+    console.log('🔧 Full environmentConfig:', environmentConfig); // Debug log
+    
+    // Fallback if URL is undefined
+    if (!url || url === 'undefined') {
+      console.error('❌ API_BASE_URL is undefined, using fallback');
+      return 'https://apiserverjoin-production.up.railway.app';
+    }
     return url;
   },
   
@@ -28,12 +35,24 @@ const apiConfig = {
     const url = environmentConfig.SOCKET_URL;
     console.log('🔧 Socket URL:', url); // Debug log
     console.log('🔧 Environment:', environmentConfig.ENVIRONMENT); // Debug log
+    
+    // Fallback if URL is undefined
+    if (!url || url === 'undefined') {
+      console.error('❌ SOCKET_URL is undefined, using fallback');
+      return 'https://apiserverjoin-production.up.railway.app';
+    }
     return url;
   },
   
   get mediaUrl() {
     const url = environmentConfig.MEDIA_BASE_URL;
     console.log('🔧 Media URL:', url); // Debug log
+    
+    // Fallback if URL is undefined
+    if (!url || url === 'undefined') {
+      console.error('❌ MEDIA_BASE_URL is undefined, using fallback');
+      return 'https://apiserverjoin-production.up.railway.app/media';
+    }
     return url;
   },
 
