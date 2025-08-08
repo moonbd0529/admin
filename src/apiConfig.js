@@ -12,26 +12,28 @@ const apiConfig = {
   get baseUrl() {
     // For development, use direct backend URL
     if (environmentConfig.isDevelopment()) {
-      return 'https://apiserverjoin-production.up.railway.app/'; // Direct connection to backend
+      return 'http://localhost:5001'; // Direct connection to backend
     }
     const url = environmentConfig.API_BASE_URL;
-    console.log('API Base URL:https://apiserverjoin-production.up.railway.app', url); // Debug log
+    console.log('🔧 API Base URL:', url); // Debug log
+    console.log('🔧 Environment:', environmentConfig.ENVIRONMENT); // Debug log
     return url;
   },
   
   get socketUrl() {
     // For development, use the direct backend URL
     if (environmentConfig.isDevelopment()) {
-      return 'https://apiserverjoin-production.up.railway.app/'; // Direct connection for Socket.IO
+      return 'http://localhost:5001'; // Direct connection for Socket.IO
     }
     const url = environmentConfig.SOCKET_URL;
-    console.log('Socket URL:https://apiserverjoin-production.up.railway.app', url); // Debug log
+    console.log('🔧 Socket URL:', url); // Debug log
+    console.log('🔧 Environment:', environmentConfig.ENVIRONMENT); // Debug log
     return url;
   },
   
   get mediaUrl() {
     const url = environmentConfig.MEDIA_BASE_URL;
-    console.log('Media URL:', url); // Debug log
+    console.log('🔧 Media URL:', url); // Debug log
     return url;
   },
 
