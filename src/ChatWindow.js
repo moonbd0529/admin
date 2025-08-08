@@ -457,48 +457,6 @@ export default function ChatWindow({ user, open, minimized, onClose, onMinimize,
                             </Typography>
                           </Box>
                         );
-                      } else if (msg.message && msg.message.startsWith('[media_group]')) {
-                        // Handle media group messages
-                        const groupInfo = msg.message.replace('[media_group]', '');
-                        const parts = groupInfo.split('_');
-                        const fileCount = parseInt(parts[0]) || 0;
-                        const caption = parts.slice(1).join('_');
-                        
-                        return (
-                          <Box sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: 1,
-                            minWidth: 180,
-                            maxWidth: 280,
-                            bgcolor: isAdmin ? 'rgba(0,123,255,0.1)' : 'rgba(0,0,0,0.05)',
-                            borderRadius: 2,
-                            p: 1
-                          }}>
-                            <Box sx={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              justifyContent: 'center',
-                              width: 40,
-                              height: 40,
-                              borderRadius: '50%',
-                              bgcolor: isAdmin ? 'rgba(0,123,255,0.2)' : 'rgba(0,0,0,0.1)',
-                              color: isAdmin ? '#007bff' : '#666'
-                            }}>
-                              📷
-                            </Box>
-                            <Box sx={{ flex: 1 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                Media Group ({fileCount} files)
-                              </Typography>
-                              {caption && (
-                                <Typography variant="caption" sx={{ opacity: 0.7 }}>
-                                  {caption}
-                                </Typography>
-                              )}
-                            </Box>
-                          </Box>
-                        );
                       } else if (msg.message && msg.message.startsWith('[video]')) {
                         const url = msg.message.replace('[video]', '');
                         const isValidUrl = url.startsWith('/media/') || url.startsWith('http');
