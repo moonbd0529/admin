@@ -10,15 +10,29 @@ import environmentConfig from './environment.js';
 const apiConfig = {
   // Base URLs from environment
   get baseUrl() {
-    return environmentConfig.API_BASE_URL;
+    // For development, use direct backend URL
+    if (environmentConfig.isDevelopment()) {
+      return 'http://localhost:5001'; // Direct connection to backend
+    }
+    const url = environmentConfig.API_BASE_URL;
+    console.log('API Base URL:', url); // Debug log
+    return url;
   },
   
   get socketUrl() {
-    return environmentConfig.SOCKET_URL;
+    // For development, use the direct backend URL
+    if (environmentConfig.isDevelopment()) {
+      return 'http://localhost:5001'; // Direct connection for Socket.IO
+    }
+    const url = environmentConfig.SOCKET_URL;
+    console.log('Socket URL:', url); // Debug log
+    return url;
   },
   
   get mediaUrl() {
-    return environmentConfig.MEDIA_BASE_URL;
+    const url = environmentConfig.MEDIA_BASE_URL;
+    console.log('Media URL:', url); // Debug log
+    return url;
   },
 
   // ========================================
@@ -79,6 +93,20 @@ const apiConfig = {
   // Update user label
   updateUserLabel: (userId) => {
     return `${apiConfig.baseUrl}/user/${userId}/label`;
+  },
+  
+  // ========================================
+  // 📊 TRACKING ENDPOINTS
+  // ========================================
+  
+  // Get tracking statistics
+  getTrackingStats: () => {
+    return `${apiConfig.baseUrl}/tracking-stats`;
+  },
+  
+  // Get user tracking information
+  getUserTracking: (userId) => {
+    return `${apiConfig.baseUrl}/user-tracking/${userId}`;
   },
   
   // ========================================
