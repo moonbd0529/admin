@@ -1,49 +1,60 @@
-// 🌐 Environment-based Configuration System
-// Development, Staging, ও Production এর জন্য আলাদা URL
-
 import config from './config.js';
 
-// ========================================
-// 🔧 ENVIRONMENT DETECTION
-// ========================================
 const getCurrentEnv = () => {
-  // Check if we're on Render (production)
-  if (window.location.hostname.includes('onrender.com')) {
+  const hostname = window.location.hostname;
+
+  // Production check
+  if (
+    hostname.includes('onrender.com') ||
+    hostname.includes('railway.app') ||
+    hostname === 'yourdomain.com'
+  ) {
     return 'production';
   }
-  
-  // Check localStorage first (for dynamic switching)
+
+  // Staging check
+  if (hostname.startsWith('staging.') || hostname.includes('staging-')) {
+    return 'staging';
+  }
+
+  // Query param override
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('env')) {
+    return params.get('env');
+  }
+
+  // LocalStorage override
   const localEnv = localStorage.getItem('NODE_ENV');
   if (localEnv) {
     return localEnv;
   }
 
-  // Fallback to process.env or default
+  // Default fallback
   return process.env.NODE_ENV || 'development';
 };
 
 const currentEnv = getCurrentEnv();
 
-// Get the correct config for current environment
 const getConfigForEnv = (env) => {
-  return config[env] || config.development; // Default to development
+  if (!config[env]) {
+    console.warn(`⚠️ No config for "${env}", using development.`);
+  }
+  return config[env] || config.development;
 };
 
-// Create the environment configuration object with helper functions
 const environmentConfig = {
-  ...getConfigForEnv(currentEnv), // Use the correct config for current environment
+  ...getConfigForEnv(currentEnv),
   ENVIRONMENT: currentEnv,
 
-  // Helper functions
   isDevelopment: () => currentEnv === 'development',
   isProduction: () => currentEnv === 'production',
   isStaging: () => currentEnv === 'staging',
-  
-  // Dynamic environment switching
+
   setEnvironment: (env) => {
+    if (env === currentEnv) return;
     localStorage.setItem('NODE_ENV', env);
-    window.location.reload(); // Reload to apply new config
+    window.location.reload();
   }
 };
 
-export default environmentConfig; 
+export default environmentConfig;
