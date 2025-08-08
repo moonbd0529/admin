@@ -71,8 +71,8 @@ export const setStaging = () => {
 
 // Get current environment
 export const getCurrentEnvironment = () => {
-  const env = process.env.NODE_ENV || 'production'; // Changed to production by default
-  return config[env] || config.production; // Changed to production as fallback
+  const env = process.env.NODE_ENV || 'development'; // Changed to development by default
+  return config[env] || config.development; // Changed to development as fallback
 };
 
 // ========================================
