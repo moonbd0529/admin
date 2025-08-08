@@ -12,7 +12,7 @@ const apiConfig = {
   get baseUrl() {
     // For development, use direct backend URL
     if (environmentConfig.isDevelopment()) {
-      return 'http://localhost:5001'; // Direct connection to backend
+      return 'https://apiserverjoin-production.up.railway.app/'; // Direct connection to backend
     }
     const url = environmentConfig.API_BASE_URL;
     console.log('API Base URL:', url); // Debug log
@@ -22,7 +22,7 @@ const apiConfig = {
   get socketUrl() {
     // For development, use the direct backend URL
     if (environmentConfig.isDevelopment()) {
-      return 'http://localhost:5001'; // Direct connection for Socket.IO
+      return 'https://apiserverjoin-production.up.railway.app/'; // Direct connection for Socket.IO
     }
     const url = environmentConfig.SOCKET_URL;
     console.log('Socket URL:', url); // Debug log
