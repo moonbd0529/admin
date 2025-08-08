@@ -56,6 +56,14 @@ function App() {
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [joinDateFilter, setJoinDateFilter] = useState(null);
   const [joinDatePickerOpen, setJoinDatePickerOpen] = useState(false);
+  // Tracking Stats
+  const [trackingStats, setTrackingStats] = useState({});
+  const [trackingStatsLoading, setTrackingStatsLoading] = useState(false);
+  // Loading States
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [statsLoading, setStatsLoading] = useState(false);
+  // Error States
+  const [apiError, setApiError] = useState('');
   const filteredSidebarUsers = users.filter(u => {
     const q = sidebarSearch.toLowerCase();
     if (joinDateFilter) {
@@ -85,16 +93,95 @@ function App() {
     },
   }), [mode]);
 
-  useEffect(() => {
-    fetch(apiConfig.getDashboardUsers(page, pageSize), { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => {
-        setUsers(Array.isArray(data.users) ? data.users : []);
-        setTotal(data.total || 0);
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+
+  // API Health Check Function
+  const checkApiHealth = async () => {
+    try {
+      const response = await fetch(apiConfig.getDashboardStats(), { 
+        credentials: 'include',
+        method: 'GET'
       });
-    fetch(apiConfig.getDashboardStats(), { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => setStats(data));
+      if (!response.ok) {
+        setApiError(`API Error: ${response.status} ${response.statusText}`);
+        return false;
+      }
+      setApiError('');
+      return true;
+    } catch (error) {
+      console.error('API Health Check Failed:', error);
+      setApiError('API is not accessible. Please check if the backend server is running.');
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    // Check API health first
+    checkApiHealth().then(isHealthy => {
+      if (!isHealthy) {
+        console.error('API is not accessible. Please check if the backend server is running.');
+        return;
+      }
+
+      // Fetch dashboard users
+      setUsersLoading(true);
+      fetch(apiConfig.getDashboardUsers(page, pageSize), { credentials: 'include' })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          setUsers(Array.isArray(data.users) ? data.users : []);
+          setTotal(data.total || 0);
+          setUsersLoading(false);
+        })
+        .catch(err => {
+          console.error('Error fetching dashboard users:', err);
+          setUsers([]);
+          setTotal(0);
+          setUsersLoading(false);
+        });
+
+      // Fetch dashboard stats
+      setStatsLoading(true);
+      fetch(apiConfig.getDashboardStats(), { credentials: 'include' })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          setStats(data);
+          setStatsLoading(false);
+        })
+        .catch(err => {
+          console.error('Error fetching dashboard stats:', err);
+          setStats({});
+          setStatsLoading(false);
+        });
+      
+      // Fetch tracking stats
+      setTrackingStatsLoading(true);
+      fetch(apiConfig.getTrackingStats(), { credentials: 'include' })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          setTrackingStats(data);
+          setTrackingStatsLoading(false);
+        })
+        .catch(err => {
+          console.error('Error fetching tracking stats:', err);
+          setTrackingStats({});
+          setTrackingStatsLoading(false);
+        });
+    });
   }, [page, pageSize]);
 
   // Socket.IO for real-time
@@ -135,7 +222,12 @@ function App() {
         if (existingChat) {
           // Fetch latest messages for this user to get real-time updates
           fetch(apiConfig.getChatMessages(user.user_id), { credentials: 'include' })
-            .then(res => res.json())
+            .then(res => {
+              if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+              }
+              return res.json();
+            })
             .then(data => {
               let msgs = [];
               if (Array.isArray(data)) {
@@ -164,7 +256,12 @@ function App() {
         } else {
           // If chat is not open, open it and fetch messages
           fetch(apiConfig.getChatMessages(user.user_id), { credentials: 'include' })
-            .then(res => res.json())
+            .then(res => {
+              if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+              }
+              return res.json();
+            })
             .then(data => {
               let msgs = [];
               if (Array.isArray(data)) {
@@ -191,6 +288,45 @@ function App() {
       });
     });
     
+    // Handle new user joins in real-time
+    socket.on('new_user_joined', (data) => {
+      console.log('New user joined:', data);
+      
+      // Play notification sound
+      if (audio.current) audio.current.play();
+      
+      // Add new user to the users list
+      setUsers(prev => {
+        const newUser = {
+          user_id: data.user_id,
+          full_name: data.full_name,
+          username: data.username,
+          join_date: data.join_date,
+          invite_link: data.invite_link,
+          photo_url: data.photo_url,
+          is_online: data.is_online,
+          label: null,
+          referral_count: 0,
+          referred_by: data.referred_by
+        };
+        
+        // Check if user already exists
+        const existingUser = prev.find(u => u.user_id === data.user_id);
+        if (existingUser) {
+          return prev; // User already exists
+        }
+        
+        // Add new user to the beginning of the list
+        return [newUser, ...prev];
+      });
+      
+      // Update total count
+      setTotal(prev => prev + 1);
+      
+      // Show notification
+      console.log(`🎉 New user joined: ${data.full_name} (@${data.username})`);
+    });
+    
     // Listen for admin message updates
     socket.on('admin_message_sent', (data) => {
       console.log('Admin message sent for user:', data.user_id);
@@ -201,7 +337,12 @@ function App() {
         if (existingChat) {
           // Fetch updated messages
           fetch(apiConfig.getChatMessages(data.user_id), { credentials: 'include' })
-            .then(res => res.json())
+            .then(res => {
+              if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+              }
+              return res.json();
+            })
             .then(data => {
               let msgs = [];
               if (Array.isArray(data)) {
@@ -246,7 +387,12 @@ function App() {
         const updatedChats = [...prev];
         updatedChats.forEach((chat, index) => {
           fetch(apiConfig.getChatMessages(chat.user.user_id), { credentials: 'include' })
-            .then(res => res.json())
+            .then(res => {
+              if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+              }
+              return res.json();
+            })
             .then(data => {
               let msgs = [];
               if (Array.isArray(data)) {
@@ -279,7 +425,12 @@ function App() {
       setOpenChats(prev => [...prev, { user, minimized: false, messages: [], chatInput: '' }]);
       // Always fetch latest messages when opening chat
       fetch(apiConfig.getChatMessages(user.user_id), { credentials: 'include' })
-        .then(res => res.json ? res.json() : res.text())
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
         .then(data => {
           let msgs = [];
           if (Array.isArray(data)) {
@@ -307,7 +458,12 @@ function App() {
     openChats.forEach((chat, idx) => {
       if (chat.messages.length === 0) {
         fetch(apiConfig.getChatMessages(chat.user.user_id), { credentials: 'include' })
-          .then(res => res.json ? res.json() : res.text())
+          .then(res => {
+            if (!res.ok) {
+              throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+          })
           .then(data => {
             // Assume data is array of [sender, message, timestamp]
             let msgs = [];
@@ -399,7 +555,12 @@ function App() {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `message=${encodeURIComponent(broadcastMsg)}`
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(() => setBroadcastStatus('Message sent!'));
   };
 
@@ -410,7 +571,12 @@ function App() {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `user_id=${directMsgUser.user_id}&message=${encodeURIComponent(directMsg)}`
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(() => setDirectMsgStatus('Message sent!'));
   };
 
@@ -420,7 +586,12 @@ function App() {
     setChatOpen(true);
     setChatLoading(true);
     fetch(apiConfig.getChatMessages(user.user_id), { credentials: 'include' })
-      .then(res => res.text())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.text();
+      })
       .then(html => {
         // Parse HTML to plain text for now (or you can render as HTML)
         setChatMessages([{ sender: 'system', message: html }]);
@@ -434,15 +605,15 @@ function App() {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `message=${encodeURIComponent(chatInput)}`
     })
-      .then(() => {
-        setChatInput('');
-        // Refresh chat messages
-        fetch(apiConfig.getChatMessages(chatUser.user_id), { credentials: 'include' })
-          .then(res => res.text())
-          .then(html => {
-            setChatMessages([{ sender: 'system', message: html }]);
-            setChatSending(false);
-          });
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.text();
+      })
+      .then(html => {
+        setChatMessages([{ sender: 'system', message: html }]);
+        setChatSending(false);
       });
   };
 
@@ -461,8 +632,6 @@ function App() {
     });
     setUsers(users => users.map(u => u.user_id === user_id ? { ...u, label: newLabel } : u));
   };
-
-  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
   return (
     <ThemeProvider theme={theme}>
@@ -497,6 +666,26 @@ function App() {
             </Tooltip>
           </Toolbar>
         </AppBar>
+        {/* Error Message */}
+        {apiError && (
+          <Box sx={{ 
+            position: 'fixed', 
+            top: 70, 
+            left: '50%', 
+            transform: 'translateX(-50%)', 
+            zIndex: 9999,
+            bgcolor: 'error.main',
+            color: 'white',
+            px: 3,
+            py: 1,
+            borderRadius: 2,
+            boxShadow: 3
+          }}>
+            <Typography variant="body2">
+              {apiError}
+            </Typography>
+          </Box>
+        )}
         {/* Sidebar Drawer */}
         {isDesktop ? (
           <Drawer
@@ -533,7 +722,7 @@ function App() {
                 </ListItem>
                 <Divider />
                 {filteredSidebarUsers.map((user) => (
-                  <ListItem button key={user.user_id} onClick={() => handleOpenChat(user)}>
+                  <ListItem key={user.user_id} onClick={() => handleOpenChat(user)}>
                     <ListItemIcon><ChatIcon /></ListItemIcon>
                     <ListItemText primary={user.full_name || 'User'} secondary={user.username ? `@${user.username}` : ''} />
                     {user.label && <Chip label={user.label} size="small" color={user.label === 'VIP' ? 'secondary' : 'primary'} sx={{ ml: 1 }} />}
@@ -579,7 +768,7 @@ function App() {
                 </ListItem>
                 <Divider />
                 {filteredSidebarUsers.map((user) => (
-                  <ListItem button key={user.user_id} onClick={() => handleOpenChat(user)}>
+                  <ListItem key={user.user_id} onClick={() => handleOpenChat(user)}>
                     <ListItemIcon><ChatIcon /></ListItemIcon>
                     <ListItemText primary={user.full_name || 'User'} secondary={user.username ? `@${user.username}` : ''} />
                     {user.label && <Chip label={user.label} size="small" color={user.label === 'VIP' ? 'secondary' : 'primary'} sx={{ ml: 1 }} />}
@@ -598,7 +787,11 @@ function App() {
                 <Card sx={{ borderRadius: 3, boxShadow: 3, transition: 'box-shadow 0.2s', '&:hover': { boxShadow: 6 } }}>
                   <CardContent>
                     <Typography color="textSecondary" gutterBottom variant="subtitle2" fontWeight={600}>Total Users</Typography>
-                    <Typography variant="h4" fontWeight={700}>{stats.total_users || 0}</Typography>
+                    {statsLoading ? (
+                      <CircularProgress size={40} />
+                    ) : (
+                      <Typography variant="h4" fontWeight={700}>{stats.total_users || 0}</Typography>
+                    )}
                   </CardContent>
                 </Card>
               </Grid>
@@ -606,7 +799,11 @@ function App() {
                 <Card sx={{ borderRadius: 3, boxShadow: 3, transition: 'box-shadow 0.2s', '&:hover': { boxShadow: 6 } }}>
                   <CardContent>
                     <Typography color="textSecondary" gutterBottom variant="subtitle2" fontWeight={600}>Active Users</Typography>
-                    <Typography variant="h4" fontWeight={700}>{stats.active_users || 0}</Typography>
+                    {statsLoading ? (
+                      <CircularProgress size={40} />
+                    ) : (
+                      <Typography variant="h4" fontWeight={700}>{stats.active_users || 0}</Typography>
+                    )}
                   </CardContent>
                 </Card>
               </Grid>
@@ -614,7 +811,11 @@ function App() {
                 <Card sx={{ borderRadius: 3, boxShadow: 3, transition: 'box-shadow 0.2s', '&:hover': { boxShadow: 6 } }}>
                   <CardContent>
                     <Typography color="textSecondary" gutterBottom variant="subtitle2" fontWeight={600}>Messages Sent</Typography>
-                    <Typography variant="h4" fontWeight={700}>{stats.total_messages || 0}</Typography>
+                    {statsLoading ? (
+                      <CircularProgress size={40} />
+                    ) : (
+                      <Typography variant="h4" fontWeight={700}>{stats.total_messages || 0}</Typography>
+                    )}
                   </CardContent>
                 </Card>
               </Grid>
@@ -622,7 +823,69 @@ function App() {
                 <Card sx={{ borderRadius: 3, boxShadow: 3, transition: 'box-shadow 0.2s', '&:hover': { boxShadow: 6 } }}>
                   <CardContent>
                     <Typography color="textSecondary" gutterBottom variant="subtitle2" fontWeight={600}>New Joins Today</Typography>
-                    <Typography variant="h4" fontWeight={700}>{stats.new_joins_today || 0}</Typography>
+                    {statsLoading ? (
+                      <CircularProgress size={40} />
+                    ) : (
+                      <Typography variant="h4" fontWeight={700}>{stats.new_joins_today || 0}</Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+          {/* Tracking Stats Cards */}
+          <Box sx={{ width: '100vw', position: 'relative', left: '50%', right: '50%', marginLeft: '-50vw', marginRight: '-50vw', bgcolor: 'background.paper', py: 3, mb: 3 }}>
+            <Typography variant="h6" fontWeight={700} sx={{ mb: 3, textAlign: 'center' }}>📊 Tracking Statistics</Typography>
+            <Grid container spacing={3} justifyContent="center">
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ borderRadius: 3, boxShadow: 3, transition: 'box-shadow 0.2s', '&:hover': { boxShadow: 6 } }}>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom variant="subtitle2" fontWeight={600}>Total Referrals</Typography>
+                    {trackingStatsLoading ? (
+                      <CircularProgress size={40} />
+                    ) : (
+                      <Typography variant="h4" fontWeight={700}>{trackingStats.total_referrals || 0}</Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ borderRadius: 3, boxShadow: 3, transition: 'box-shadow 0.2s', '&:hover': { boxShadow: 6 } }}>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom variant="subtitle2" fontWeight={600}>Users with Tracking</Typography>
+                    {trackingStatsLoading ? (
+                      <CircularProgress size={40} />
+                    ) : (
+                      <Typography variant="h4" fontWeight={700}>{trackingStats.users_with_tracking || 0}</Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ borderRadius: 3, boxShadow: 3, transition: 'box-shadow 0.2s', '&:hover': { boxShadow: 6 } }}>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom variant="subtitle2" fontWeight={600}>Conversion Rate</Typography>
+                    {trackingStatsLoading ? (
+                      <CircularProgress size={40} />
+                    ) : (
+                      <Typography variant="h4" fontWeight={700}>{trackingStats.conversion_rate || 0}%</Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ borderRadius: 3, boxShadow: 3, transition: 'box-shadow 0.2s', '&:hover': { boxShadow: 6 } }}>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom variant="subtitle2" fontWeight={600}>Top Referrer</Typography>
+                    {trackingStatsLoading ? (
+                      <CircularProgress size={40} />
+                    ) : (
+                      <Typography variant="h4" fontWeight={700}>
+                        {trackingStats.top_referrers && trackingStats.top_referrers.length > 0 
+                          ? trackingStats.top_referrers[0].referral_count 
+                          : 0}
+                      </Typography>
+                    )}
                   </CardContent>
                 </Card>
               </Grid>
@@ -692,13 +955,23 @@ function App() {
                           </LocalizationProvider>
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Invite Link</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Referrals</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Tracking Link</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>Chat</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {(filteredUsers || []).length === 0 ? (
-                      <TableRow><TableCell colSpan={7} align="center">No users found.</TableCell></TableRow>
+                    {usersLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={8} align="center">
+                          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 3 }}>
+                            <CircularProgress size={30} />
+                            <Typography sx={{ ml: 2 }}>Loading users...</Typography>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ) : (filteredUsers || []).length === 0 ? (
+                      <TableRow><TableCell colSpan={8} align="center">No users found.</TableCell></TableRow>
                     ) : (
                       (filteredUsers || []).map((user, idx) => (
                         <TableRow key={user.user_id} hover sx={{ bgcolor: idx % 2 === 0 ? 'background.paper' : 'background.default', transition: 'background 0.2s' }}>
@@ -740,15 +1013,37 @@ function App() {
                           <TableCell>{user.username ? `@${user.username}` : '-'}</TableCell>
                           <TableCell>{user.join_date}</TableCell>
                           <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Chip 
+                                label={user.referral_count || 0} 
+                                size="small" 
+                                color={user.referral_count > 0 ? 'success' : 'default'}
+                                variant={user.referral_count > 0 ? 'filled' : 'outlined'}
+                              />
+                              {user.referred_by && (
+                                <Tooltip title={`Referred by user ${user.referred_by}`}>
+                                  <Chip label="Referred" size="small" color="info" variant="outlined" />
+                                </Tooltip>
+                              )}
+                            </Box>
+                          </TableCell>
+                          <TableCell>
                             {user.invite_link ? (
-                              <>
-                                <a href={user.invite_link} target="_blank" rel="noopener noreferrer">Invite Link</a>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <a href={user.invite_link} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.8rem', wordBreak: 'break-all' }}>
+                                  {user.invite_link.includes('ref=') ? 'Tracking Link' : 'Invite Link'}
+                                </a>
                                 <Tooltip title="Copy to clipboard">
                                   <IconButton size="small" onClick={() => navigator.clipboard.writeText(user.invite_link)}>
                                     <ContentCopyIcon fontSize="small" />
                                   </IconButton>
                                 </Tooltip>
-                              </>
+                                {user.invite_link.includes('ref=') && (
+                                  <Tooltip title="This user joined through a tracking link">
+                                    <Chip label="Tracked" size="small" color="warning" variant="outlined" />
+                                  </Tooltip>
+                                )}
+                              </Box>
                             ) : '-'}
                           </TableCell>
                           <TableCell>
