@@ -11,3 +11,504 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Enhanced media message styling - Grid Layout for Group Media */
+.media-message {
+  margin-bottom: 8px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.05);
+  position: relative;
+  max-width: 100%;
+  transition: all 0.2s ease;
+}
+
+/* Grid container for multiple media items */
+.media-grid {
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Grid layouts for different numbers of media items */
+.media-grid.grid-1 {
+  grid-template-columns: 1fr;
+}
+
+.media-grid.grid-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.media-grid.grid-3 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.media-grid.grid-3 .media-item:first-child {
+  grid-column: 1 / -1;
+}
+
+.media-grid.grid-4 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.media-grid.grid-5 {
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.media-grid.grid-5 .media-item:first-child {
+  grid-column: 1 / 3;
+}
+
+.media-grid.grid-6 {
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.media-grid.grid-7,
+.media-grid.grid-8,
+.media-grid.grid-9 {
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+}
+
+.media-grid.grid-7 .media-item:first-child {
+  grid-column: 1 / 3;
+  grid-row: 1 / 3;
+}
+
+.media-grid.grid-8 .media-item:first-child {
+  grid-column: 1 / 3;
+  grid-row: 1 / 3;
+}
+
+.media-grid.grid-9 .media-item:first-child {
+  grid-column: 1 / 3;
+  grid-row: 1 / 3;
+}
+
+/* Individual media item in grid */
+.media-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.media-item:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Media preview container */
+.media-preview {
+  position: relative;
+  display: block;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+/* Image and GIF styling for grid */
+.media-item .message-image,
+.media-item .message-gif {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.media-item .message-image:hover,
+.media-item .message-gif:hover {
+  transform: scale(1.05);
+}
+
+/* Video styling for grid */
+.media-item .message-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+
+/* Media overlay for type indicators in grid */
+.media-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  backdrop-filter: blur(4px);
+}
+
+.media-type-icon {
+  font-size: 14px;
+}
+
+.play-button {
+  font-size: 16px;
+  animation: pulse 2s infinite;
+}
+
+.gif-label {
+  background: #ff6b6b;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+/* Grid count indicator */
+.grid-count {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  backdrop-filter: blur(4px);
+}
+
+/* Single media item (not in grid) */
+.media-message:not(.media-grid) {
+  max-width: 280px;
+}
+
+.media-message:not(.media-grid) .media-preview {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+.media-message:not(.media-grid) .message-image,
+.media-message:not(.media-grid) .message-gif {
+  width: 100%;
+  max-height: 200px;
+  border-radius: 12px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.media-message:not(.media-grid) .message-image:hover,
+.media-message:not(.media-grid) .message-gif:hover {
+  transform: scale(1.02);
+}
+
+.media-message:not(.media-grid) .message-video {
+  width: 100%;
+  max-height: 200px;
+  border-radius: 12px;
+  background: #000;
+  display: block;
+}
+
+/* Voice message styling - Telegram style */
+.voice-message .voice-bubble {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
+  min-width: 200px;
+}
+
+.voice-icon {
+  font-size: 20px;
+  color: #007bff;
+}
+
+.voice-message .message-audio {
+  flex: 1;
+  height: 32px;
+  border-radius: 16px;
+  background: transparent;
+}
+
+.voice-duration {
+  font-size: 12px;
+  color: #666;
+  min-width: 30px;
+  text-align: right;
+}
+
+/* Audio message styling - Facebook Messenger style */
+.audio-message .audio-bubble {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
+  min-width: 250px;
+}
+
+.audio-icon {
+  font-size: 20px;
+  color: #28a745;
+}
+
+.audio-message .message-audio {
+  flex: 1;
+  height: 32px;
+  border-radius: 16px;
+  background: transparent;
+}
+
+.audio-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.audio-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.audio-duration {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Document message styling - Telegram style */
+.document-message .document-bubble {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  min-width: 250px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.document-icon {
+  font-size: 24px;
+  color: #007bff;
+}
+
+.document-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.document-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.document-ext {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.document-download {
+  font-size: 18px;
+  color: #007bff;
+  text-decoration: none;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background 0.2s ease;
+}
+
+.document-download:hover {
+  background: rgba(0, 123, 255, 0.1);
+}
+
+/* Message bubble styling for media */
+.admin-message .media-message {
+  background: rgba(0, 123, 255, 0.1);
+  border: 1px solid rgba(0, 123, 255, 0.2);
+}
+
+.user-message .media-message {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* Media error styling */
+.media-error {
+  background: #ffebee;
+  color: #c62828;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-top: 4px;
+  border: 1px solid #ffcdd2;
+  text-align: center;
+}
+
+/* Hover effects for media */
+.media-message:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+/* Responsive design for grid */
+@media (max-width: 768px) {
+  .media-grid.grid-2,
+  .media-grid.grid-3,
+  .media-grid.grid-4 {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .media-grid.grid-5,
+  .media-grid.grid-6 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+  }
+  
+  .media-grid.grid-5 .media-item:first-child,
+  .media-grid.grid-6 .media-item:first-child {
+    grid-column: 1 / -1;
+  }
+  
+  .media-grid.grid-7,
+  .media-grid.grid-8,
+  .media-grid.grid-9 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr;
+  }
+  
+  .media-grid.grid-7 .media-item:first-child,
+  .media-grid.grid-8 .media-item:first-child,
+  .media-grid.grid-9 .media-item:first-child {
+    grid-column: 1 / -1;
+    grid-row: 1 / 2;
+  }
+  
+  .media-message:not(.media-grid) {
+    max-width: 240px;
+  }
+  
+  .voice-message .voice-bubble,
+  .audio-message .audio-bubble,
+  .document-message .document-bubble {
+    min-width: 200px;
+    padding: 10px 12px;
+  }
+  
+  .media-overlay {
+    top: 4px;
+    right: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .media-message {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .media-grid {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .voice-bubble,
+  .audio-bubble,
+  .document-bubble {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .audio-title,
+  .document-name {
+    color: #fff;
+  }
+  
+  .audio-duration,
+  .document-ext,
+  .voice-duration {
+    color: #ccc;
+  }
+}
+
+/* Admin-sent media styling */
+.admin-sent-media {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 123, 255, 0.1);
+  border: 2px dashed rgba(0, 123, 255, 0.3);
+  border-radius: 12px;
+  min-height: 120px;
+  text-align: center;
+}
+
+.admin-sent-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  color: #007bff;
+}
+
+.admin-sent-text {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.admin-sent-audio {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(0, 123, 255, 0.1);
+  border: 1px solid rgba(0, 123, 255, 0.3);
+  border-radius: 8px;
+  margin: 4px 0;
+}
+
+/* Dark mode support for admin-sent media */
+@media (prefers-color-scheme: dark) {
+  .admin-sent-media {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .admin-sent-text {
+    color: #ccc;
+  }
+  
+  .admin-sent-audio {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+}
