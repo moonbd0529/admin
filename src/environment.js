@@ -7,6 +7,11 @@ import config from './config.js';
 // 🔧 ENVIRONMENT DETECTION
 // ========================================
 const getCurrentEnv = () => {
+  // Check if we're on Render (production)
+  if (window.location.hostname.includes('onrender.com')) {
+    return 'production';
+  }
+  
   // Check localStorage first (for dynamic switching)
   const localEnv = localStorage.getItem('NODE_ENV');
   if (localEnv) {
@@ -14,7 +19,7 @@ const getCurrentEnv = () => {
   }
 
   // Fallback to process.env or default
-  return process.env.NODE_ENV || 'development'; // Changed to development by default
+  return process.env.NODE_ENV || 'development';
 };
 
 const currentEnv = getCurrentEnv();
