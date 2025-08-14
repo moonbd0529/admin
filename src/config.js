@@ -24,10 +24,10 @@ const config = {
   
   // Production Environment
   production: {
-    API_BASE_URL: 'https://apiserverjoin-production.up.railway.app',
-    SOCKET_URL: 'https://apiserverjoin-production.up.railway.app',
-    MEDIA_BASE_URL: 'https://apiserverjoin-production.up.railway.app/media',
-    FRONTEND_URL: 'https://admin-aa3r.onrender.com/'
+    API_BASE_URL: 'https://web-production-f200.up.railway.app',
+    SOCKET_URL: 'https://web-production-f200.up.railway.app',
+    MEDIA_BASE_URL: 'https://web-production-f200.up.railway.appp/media',
+    FRONTEND_URL: 'https://admin-8f9s.onrender.com'
   },
   
   // Staging Environment
@@ -40,10 +40,10 @@ const config = {
   
   // Render Environment (for Render deployment)
   render: {
-    API_BASE_URL: 'https://apiserverjoin.onrender.com',
-    SOCKET_URL: 'https://apiserverjoin.onrender.com',
-    MEDIA_BASE_URL: 'https://apiserverjoin.onrender.com/media',
-    FRONTEND_URL: 'https://admin-aa3r.onrender.com/'
+    API_BASE_URL: 'https://web-production-f200.up.railway.app',
+    SOCKET_URL: 'https://web-production-f200.up.railway.app',
+    MEDIA_BASE_URL: 'https://web-production-f200.up.railway.appp/media',
+    FRONTEND_URL: 'https://admin-8f9s.onrender.com'
   }
 };
 
@@ -134,3 +134,4 @@ const defaultExport = {
 };
 
 export default defaultExport; 
+
