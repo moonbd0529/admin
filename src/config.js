@@ -106,7 +106,7 @@ export const getMediaUrl = (url) => {
     // If it's a Telegram API URL, use a CORS proxy to avoid CORS issues
     if (url.includes('api.telegram.org')) {
       // Use a CORS proxy to avoid CORS issues
-      return `https://shinkansen.proxy.rlwy.net:21767/${url}`;
+      return `https://ballast.proxy.rlwy.net:36896/${url}`;
     }
     return url;
   }
@@ -134,4 +134,5 @@ const defaultExport = {
 };
 
 export default defaultExport; 
+
 
