@@ -22,7 +22,7 @@ const apiConfig = {
     // Fallback if URL is undefined
     if (!url || url === 'undefined') {
       console.error('❌ API_BASE_URL is undefined, using fallback');
-      return 'https://apiserverjoin-production.up.railway.app';
+      return 'https://web-production-f200.up.railway.app';
     }
     return url;
   },
@@ -39,7 +39,7 @@ const apiConfig = {
     // Fallback if URL is undefined
     if (!url || url === 'undefined') {
       console.error('❌ SOCKET_URL is undefined, using fallback');
-      return 'https://apiserverjoin-production.up.railway.app';
+      return 'https://web-production-f200.up.railway.app/';
     }
     return url;
   },
@@ -51,7 +51,7 @@ const apiConfig = {
     // Fallback if URL is undefined
     if (!url || url === 'undefined') {
       console.error('❌ MEDIA_BASE_URL is undefined, using fallback');
-      return 'https://apiserverjoin-production.up.railway.app/media';
+      return 'https://web-production-f200.up.railway.app/media';
     }
     return url;
   },
